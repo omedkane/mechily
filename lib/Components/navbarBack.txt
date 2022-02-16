@@ -1,0 +1,192 @@
+import 'package:mechily/AppStyle.dart';
+import 'package:mechily/Pages/FoodScreen/AnimatedMagicCard.dart';
+import 'package:mechily/HPCModel.dart';
+import 'package:mechily/HomePageController.dart';
+import 'package:mechily/Misc/misc.dart';
+import 'package:flutter/material.dart';
+
+
+class MyNavBarController {
+  Function readyGo;
+}
+
+class MyNavBar extends StatefulWidget {
+  final int currentPage;
+  final MPCModel mpcController;
+
+  const MyNavBar({Key key, this.currentPage, this.mpcController})
+      : super(key: key);
+  @override
+  _MyNavBarState createState() => _MyNavBarState();
+}
+
+class _MyNavBarState extends State<MyNavBar>
+    with SingleTickerProviderStateMixin {
+  AnimationController _controller;
+  CurvedAnimation daCurve;
+  Animation translater, scaler;
+  double nowBegin, nowEnd;
+  RxInt nowActive = 0.obs;
+
+  @override
+  void initState() {
+    widget.mpcController.navBarController.readyGo = (int indexed) {
+      driveMe(indexed);
+    };
+    super.initState();
+    nowActive.value = widget.currentPage;
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 480));
+    daCurve = CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0, _controller.duration.inMilliseconds / 1000,
+            curve: Curves.linear));
+    nowBegin = nowActive.value + 0.0;
+    nowEnd = 2.0;
+    translater = Tween(begin: nowBegin, end: nowEnd).animate(daCurve);
+    scaler = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.3), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 0.3, end: 0.3), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.3, end: 1.0), weight: 25),
+    ]).animate(daCurve);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future animateMe() async {
+    if (_controller.isCompleted)
+      await _controller.reverse();
+    else
+      await _controller.forward();
+  }
+
+  Future driveMe(int index) async {
+    if (index != nowActive.value && !_controller.isAnimating) {
+      if (_controller.isCompleted) {
+        translater = Tween(begin: nowEnd, end: index).animate(daCurve);
+        nowEnd = index + 0.0;
+        _controller.reset();
+      } else {
+        translater = Tween(begin: 0.0, end: index).animate(daCurve);
+      }
+      nowActive.value = index;
+
+      await _controller.forward();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    return SizedBox(
+      height: 88,
+      width: screenWidth,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Spacer(),
+          Container(
+            // alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            // height: 72,
+            // width: screenWidth * 0.8,
+            margin: EdgeInsets.only(bottom: 16),
+            // padding: EdgeInsets.only(left: 16, right: 16),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: hoverShaded,
+                borderRadius: BorderRadius.circular(8.0)),
+            child: Stack(
+              children: [
+                AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(66.0 * translater.value, 0),
+                        child: Transform.scale(
+                          scale: scaler.value,
+                          child: Container(
+                            height: 56,
+                            width: 56,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: shiro,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                Obx(() => Wrap(
+                      spacing: 10,
+                      children: List.generate(4, (index) {
+                        return GestureDetector(
+                          onTap: () {
+                            widget.mpcController.toggleExtraWidget(how: false);
+                            widget.mpcController.extraWidgetFunction = () {
+                              print("snoop doooggg");
+                            };
+                            driveMe(index).whenComplete(() {
+                              widget.mpcController.pvController
+                                  .jumpToPage(index);
+                            });
+                          },
+                          child: NavBarItem(
+                            isActive: nowActive.value == index,
+                            daIcon: widget.mpcController.screenList[0][index],
+                          ),
+                        );
+                      }),
+                    )),
+              ],
+            ),
+          ),
+          GetBuilder<MPCModel>(
+            id: "navExtraWidget",
+            builder: (_) {
+              return AnimatedMagicCard(
+                isAlreadyThere: widget.mpcController.isExtraWidgetShown,
+                remote: RemoteAnimationsController(durationInMs: 400),
+                // daSubstitute: Spacer(),
+                child: Container(
+                  alignment: Alignment.centerRight,
+                  margin: const EdgeInsets.only(left: 48, right: 0),
+                  child: widget.mpcController.extraWidget,
+                ),
+              );
+            },
+          ),
+          // Spacer()
+        ],
+      ),
+    );
+  }
+}
+
+class NavBarItem extends StatelessWidget {
+  final IconData daIcon;
+  final bool isActive;
+
+  const NavBarItem({Key key, this.daIcon, this.isActive = false})
+      : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 56,
+      width: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        // border: isActive ? Border.all(color: shiro, width: 1) : Border(),
+        color: Colors.transparent,
+      ),
+      child: Icon(
+        daIcon ?? Icons.home,
+        color: isActive ? Colors.white : Colors.grey,
+      ),
+    );
+  }
+}

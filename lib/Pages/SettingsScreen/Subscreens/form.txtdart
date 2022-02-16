@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+
+class SecurityView extends StatefulWidget {
+  @override
+  _SecurityViewState createState() => _SecurityViewState();
+}
+
+class _SecurityViewState extends State<SecurityView> {
+  // FocusNode focusNode0 = FocusNode();
+  // FocusNode focusNode1 = FocusNode();
+  // FocusNode focusNode2 = FocusNode();
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Form(
+            key: formKey,
+            child: Column(
+              children: [
+                TextField(
+                  // focusNode: focusNode0,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: "Nothing really...",
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  // focusNode: focusNode1,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: "Nothing really...",
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  // focusNode: focusNode2,
+                  decoration: InputDecoration(
+                    hintText: "Nothing really...",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}

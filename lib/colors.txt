@@ -1,0 +1,6 @@
+FF374C red
+242038 black purl
+FFE74C yellow
+35A7FF blue
+C7AA00 dark yellow
+35A7FF light red
